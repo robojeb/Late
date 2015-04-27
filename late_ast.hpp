@@ -2,6 +2,7 @@
 #define LATE_AST_HPP_INC
 
 #include <string>
+#include <vector>
 
 //Predeclare structures
 struct _production_data;
