@@ -23,7 +23,7 @@ Symbol::Symbol(string value, SymbolType type, bool nullable):
   nullable_{nullable}
 {
   if (type_ == SymbolType::REGEX) {
-    valueRegex_ = new regex(value_, regex_constants::optimize);
+    valueRegex_ = new regex(value_, regex_constants::optimize | regex_constants::ECMAScript);
   }
 }
 

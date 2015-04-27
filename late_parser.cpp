@@ -116,9 +116,9 @@ _file_ast late_parser::parse(string input)
   Production _symbol_2 {"_symbol", 2,
     {"_regex"_nt}};
   Production _string_0 {"_string", 0,
-    {"\"((?:\\\"|(?:.))*)\""_r}};
+    {"\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\""_r}};
   Production _regex_0 {"_regex", 0,
-    {"r\"((?:\\\"|(?:.))*)\""_r}};
+    {"r\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\""_r}};
   Production _option_0 {"_option", 0,
     {":"_t, "_option_type"_nt}};
   Production _option_1 {"_option", 1,
@@ -147,6 +147,8 @@ _file_ast late_parser::parse(string input)
 
   cout << "Parse: " << (c.parsed(start)?"Succeeded":"Failed") << endl;
 
+  cout.flush();
+
   //cout<< c << endl;
 
   if(c.parsed(start)) {
@@ -156,23 +158,28 @@ _file_ast late_parser::parse(string input)
     tie(setIndex, stateIndex) = bootstrap.symbolInfo(0);
     Production userStart = c.getState(setIndex, stateIndex).first;
 
-    //_file_ast file = handle_file(input, userStart, c);
+    _file_ast file = handle_file(input, userStart, c);
 
-    return _file_ast{};
+    //cout << c << endl;
+
+    return file;
+  }else {
+    cout << c << endl;
   }
 
   return _file_ast{};
 }
 
 int main() {
-  ifstream grammar("testGrammars/testHuge.bnf");
+  ifstream grammar("testGrammars/testLarge.bnf");
   string input{istreambuf_iterator<char>(grammar), istreambuf_iterator<char>()};
 
   cout << "Input length: " << input.length() << endl;
   _file_ast parsed = parse(input);
 
-  // for(auto p : parsed) {
-  //   cout << p.name_ << endl;
-  // }
+  for(auto p : parsed) {
+    cout << p.name_ << endl;
+  }
+
   return 0;
 }

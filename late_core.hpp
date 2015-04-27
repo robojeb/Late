@@ -53,7 +53,7 @@ namespace late_core {
     #ifdef USE_BOOST
     boost::regex* valueRegex_;
     #else
-    regex* valueRegex_;
+    std::regex* valueRegex_;
     #endif
   };
 

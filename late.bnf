@@ -10,9 +10,9 @@ sub_production := symbol ws sub_production | symbol;
 
 symbol := non_terminal | string | regex;
 
-string := r"\"((?:\\\"|(?:.))*)\"";
+string := r"\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\"";
 
-regex := r"r\"((?:\\\"|(?:.))*)\"";
+regex := r"r\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\"";
 
 option:nullable := ":" option_type | "";
 
