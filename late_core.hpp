@@ -5,7 +5,14 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#define USE_BOOST 1
+
+#ifdef USE_BOOST
 #include <boost/regex.hpp>
+#else
+#include <regex>
+#endif
 
 namespace late_core {
   static const bool DEBUG_INFO = false;
@@ -43,7 +50,11 @@ namespace late_core {
     std::string value_;
     SymbolType type_;
     bool nullable_;
+    #ifdef USE_BOOST
     boost::regex* valueRegex_;
+    #else
+    regex* valueRegex_;
+    #endif
   };
 
   //These custom literals make defining productions easier

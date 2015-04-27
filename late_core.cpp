@@ -6,7 +6,9 @@
 
 using namespace std;
 using namespace late_core;
+#ifdef USE_BOOST
 using namespace boost;
+#endif
 /*
  * Generic stuff in all late parsers.
  */
