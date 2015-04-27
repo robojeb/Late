@@ -1,0 +1,21 @@
+file := production ws ";" ws file | production ws ";" ws;
+
+production := non_terminal option ws ":=" ws rhs;
+
+non_terminal := r"[a-zA-Z][a-zA-Z0-9_-]*";
+
+rhs := sub_production ws "|" ws rhs | sub_production;
+
+sub_production := symbol ws sub_production | symbol;
+
+symbol := non_terminal | string | regex;
+
+string := r"\"((?:\\\"|(?:.))*)\"";
+
+regex := r"r\"((?:\\\"|(?:.))*)\"";
+
+option:nullable := ":" option_type | "";
+
+option_type := "nullable";
+
+ws:nullable := r"\\s*";
