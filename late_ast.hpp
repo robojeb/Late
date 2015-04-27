@@ -10,9 +10,9 @@ struct _symbol_data;
 //We use typedefs so that you can easily replace structures with
 //basic data types
 typedef _production_data _production_ast;
-typedef std::vector<_production_ast*> _file_ast;
+typedef std::vector<_production_ast> _file_ast;
 typedef _symbol_data _symbol_ast;
-typedef std::vector<_symbol_ast*> _sub_production_ast;
+typedef std::vector<_symbol_ast> _sub_production_ast;
 typedef std::vector<_sub_production_ast> _rhs_ast;
 typedef std::string _non_terminal_ast;
 typedef std::string _string_ast;

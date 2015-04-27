@@ -1,12 +1,12 @@
 #include <iterator>
 #include <iostream>
-#include <regex>
 #include <tuple>
 
 #include "late_core.hpp"
 
 using namespace std;
 using namespace late_core;
+using namespace boost;
 /*
  * Generic stuff in all late parsers.
  */
@@ -20,7 +20,9 @@ Symbol::Symbol(string value, SymbolType type, bool nullable):
   type_{type},
   nullable_{nullable}
 {
-  //Nothing to do
+  if (type_ == SymbolType::REGEX) {
+    valueRegex_ = new regex(value_, regex_constants::optimize);
+  }
 }
 
 SymbolType Symbol::type() const
@@ -38,24 +40,46 @@ bool Symbol::nullable() const
   return nullable_;
 }
 
-pair<bool, size_t> Symbol::matchesInput(string input, size_t position) const
+bool match(const string& ref, string& input, size_t position)
+{
+  //Handle both are empty
+  auto beginIter = input.cbegin();
+  advance(beginIter, position);
+  if (ref.begin() == ref.end() && beginIter == input.end()) return true;
+  auto refIter = ref.begin();
+  for(; refIter != ref.end() && beginIter != input.end(); ++refIter, ++beginIter) {
+    if (*refIter != *beginIter) return false;
+  }
+  //If we consumed all of reference
+  if(refIter == ref.end()) return true;
+  //Otherwise we hit the end of the other string
+  return false;
+}
+
+pair<bool, size_t> Symbol::matchesInput(string& input, size_t position) const
 {
   //TODO make this match more than one character.
   //For now we only check if the next character is our value
   //cout << "SCANNING" << endl;
   if (type_ == SymbolType::TERMINAL){
-    string nextChars = input.substr(position, value_.length());
-    if(nextChars == value_){
-      cout << "String Matched: " << value_ << endl;
+    //string nextChars = input.substr(position, value_.length());
+    if(match(value_, input, position)){
+      if (DEBUG_INFO) {
+        cout << "String Matched: " << value_ << endl;
+      }
       return make_pair(true,value_.length());
     }
-    cout << "No Match: " << value_ << endl;
+    if (DEBUG_INFO) {
+      cout << "No Match: " << value_ << endl;
+    }
   } else if (type_ == SymbolType::REGEX) {
     //Make a regular expression out of the value;
-    regex valueRegex{value_, regex_constants::ECMAScript};
+    //regex valueRegex{value_, regex_constants::ECMAScript};
     smatch match;
-    string remaining = input.substr(position);
-    if(regex_search(remaining, match, valueRegex)){
+    auto beginIter = input.cbegin();
+    advance(beginIter, position);
+    //string remaining = input.substr(position);
+    if(regex_search(beginIter, input.cend(), match, *valueRegex_)){
       if(distance(match.prefix().first, match[0].first) == 0) {
         //cout << "Regex matched: " << value_ << " " << match[0] << endl;
         //cout << distance(match[0].first, match[0].second) << endl;
@@ -219,7 +243,9 @@ void Chart::addToSet(size_t setIndex, State s)
   for (State other : chart_[setIndex]) {
     if (other == s) return;
   }
-  cout << "Adding to "<< setIndex << ": " << s << endl;
+  if (DEBUG_INFO) {
+    cout << "Adding to "<< setIndex << ": " << s << endl;
+  }
   chart_[setIndex].push_back(s);
 }
 
@@ -282,7 +308,9 @@ ostream& late_core::operator<<(ostream& out, const Chart& c)
 
 void predictor(State s, size_t j, Grammar& grammar, Chart& chart)
 {
-  cout << "Predicting " << s << endl;
+  if (DEBUG_INFO) {
+    cout << "Predicting " << s << endl;
+  }
 
   for(Production p : grammar) {
     //If this production is the next symbol in the state we are predicting
@@ -300,14 +328,18 @@ void predictor(State s, size_t j, Grammar& grammar, Chart& chart)
   }
 }
 
-void scanner(State s, size_t j, string input, Chart& chart)
+void scanner(State s, size_t j, string& input, Chart& chart)
 {
-  cout << "Scanning " << s << endl;
+  if (DEBUG_INFO) {
+    cout << "Scanning " << s << endl;
+  }
   bool match;
   size_t matchSize;
   tie(match, matchSize) = s.first.nextSymbol().matchesInput(input, j);
   if (match) {
-    cout << "Scan success: " << matchSize << endl;
+    if (DEBUG_INFO) {
+      cout << "Scan success: " << matchSize << endl;
+    }
     Production nextProduction{s.first};
     nextProduction.advance(make_pair(j, matchSize)); //Consume one symbol
     chart.addToSet(j+matchSize, State{nextProduction, s.second});
@@ -316,7 +348,9 @@ void scanner(State s, size_t j, string input, Chart& chart)
 
 void completer(State s, size_t k, Chart& chart, pair<size_t, size_t> pos)
 {
-  cout << "Completing " << s << endl;
+  if (DEBUG_INFO) {
+    cout << "Completing " << s << endl;
+  }
   size_t j = s.second;
   for (int stateIndex = 0; stateIndex < chart.setSize(j); ++stateIndex) {
     State otherState = chart.getState(j, stateIndex);
@@ -337,13 +371,15 @@ void completer(State s, size_t k, Chart& chart, pair<size_t, size_t> pos)
 //and will fill the chart accortind to the algorithm rules. The chart is assumed
 //to be empty. The grammar is assumed to have a bootstraping rule which is
 //passed into startRule
-void late_core::parse_engine(string input, Grammar& grammar,
+void late_core::parse_engine(string& input, Grammar& grammar,
                   Production startRule, Chart& chart)
 {
   //Add the start rule to seed the chart
   chart.addToSet(0, State{startRule, 0});
   for (int i = 0; i < input.length()+1; ++i) {
-    cout << i << endl;
+    if (DEBUG_INFO) {
+      cout << i << endl;
+    }
     for(int j = 0; j < chart.setSize(i); ++j) {
       State s = chart.getState(i, j);
       if(s.first.isComplete()) {

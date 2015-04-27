@@ -12,7 +12,7 @@
 // T := "1" | "2" | "3" | "4"
 
 namespace late_parser{
-  _file_ast* parse(std::string input);
+  _file_ast parse(std::string input);
 };
 
 #endif

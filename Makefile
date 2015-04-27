@@ -1,12 +1,14 @@
 CXX=clang++
 
-CXXFLAGS=--std=c++11 -g
+CXXFLAGS= --std=c++11 -O2
+
+LDFLAGS= -lboost_regex
 
 all: late_parser
 
 
 late_parser: late_parser.o late_core.o
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(LDFLAGS) $(CXXFLAGS) -o $@ $^
 
 clean:
 	rm *.o late_parser

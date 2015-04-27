@@ -5,8 +5,11 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <boost/regex.hpp>
 
 namespace late_core {
+  static const bool DEBUG_INFO = false;
+
   /*
    * Generic parser declarations
    */
@@ -31,7 +34,7 @@ namespace late_core {
 
     //Check if this symbol matches the next N characters and return the length
     //of the match. This should only be called on TERMINAL and REGEX types
-    std::pair<bool, size_t> matchesInput(std::string input, size_t position) const;
+    std::pair<bool, size_t> matchesInput(std::string& input, size_t position) const;
 
     bool operator==(const Symbol& rhs) const;
 
@@ -40,6 +43,7 @@ namespace late_core {
     std::string value_;
     SymbolType type_;
     bool nullable_;
+    boost::regex* valueRegex_;
   };
 
   //These custom literals make defining productions easier
@@ -122,7 +126,7 @@ namespace late_core {
     size_t numSets_;
   };
 
-  void parse_engine(std::string input, Grammar& grammar,
+  void parse_engine(std::string& input, Grammar& grammar,
                     Production startRule, Chart& chart);
 
 };

@@ -5,23 +5,21 @@
 #include <streambuf>
 #include <iterator>
 
-#include <regex>
-
 using namespace late_core;
 using namespace late_parser;
 using namespace std;
 
-_file_ast* handle_file(string& input, Production& p, Chart& chart);
-_production_ast* handle_production(string& input, Production& p, Chart& chart);
+_file_ast handle_file(string& input, Production& p, Chart& chart);
+_production_ast handle_production(string& input, Production& p, Chart& chart);
 _non_terminal_ast handle_non_terminal(string& input, Production& p, Chart& chart);
 
-_file_ast* handle_file(string& input, Production& p, Chart& chart)
+_file_ast handle_file(string& input, Production& p, Chart& chart)
 {
   int64_t setIndex;
   size_t stateIndex;
   Production production;
-  _production_ast* p_ast;
-  _file_ast* out;
+  _production_ast p_ast;
+  _file_ast out;
   switch (p.number()){
     case 0: //production ws ";" ws file
       //production
@@ -32,30 +30,28 @@ _file_ast* handle_file(string& input, Production& p, Chart& chart)
       tie(setIndex, stateIndex) = p.symbolInfo(4);
       production = chart.getState(setIndex, stateIndex).first;
       out = handle_file(input, production, chart);
-      out->push_back(p_ast);
+      out.push_back(p_ast);
       return out;
-      break;
     case 1: // production ws ";" ws
       //This is the terminal file make a new
       //production
       tie(setIndex, stateIndex) = p.symbolInfo(0);
       production = chart.getState(setIndex, stateIndex).first;
       p_ast = handle_production(input, production, chart);
-      out = new _file_ast({p_ast});
+      out = _file_ast({p_ast});
       return out;
-      break;
     default:
       break;
   }
-  return nullptr;
+  return _file_ast{};
 }
 
-_production_ast* handle_production(string& input, Production& p, Chart& chart)
+_production_ast handle_production(string& input, Production& p, Chart& chart)
 {
   int64_t setIndex;
   size_t stateIndex;
   Production production;
-  _production_ast* out = new _production_ast();
+  _production_ast out = _production_ast();
   //No cases so no switch
   //non_terminal option ws ":=" ws rhs
 
@@ -63,23 +59,23 @@ _production_ast* handle_production(string& input, Production& p, Chart& chart)
   production = chart.getState(setIndex, stateIndex).first;
   _non_terminal_ast name = handle_non_terminal(input, production, chart);
 
-  out->name_ = name;
+  out.name_ = name;
 
   // tie(setIndex, stateIndex) = p.symbolInfo(1);
   // production = chart.getState(setIndex, stateIndex).first;
   // _option_ast option = handle_option(input, production, chart);
   //
   // if (option == "nullable") {
-  //   out->nullable_ = true;
+  //   out.nullable_ = true;
   // } else {
-  //   out->nullable_ = false;
+  //   out.nullable_ = false;
   // }
   //
   // tie(setIndex, stateIndex) = p.symbolInfo(5);
   // production = chart.getState(setIndex, stateIndex).first;
   // _rhs_ast rhs = handle_rhs(input, production, chart);
   //
-  // out->sub_productions_ = rhs;
+  // out.sub_productions_ = rhs;
 
   return out;
 }
@@ -93,7 +89,7 @@ _non_terminal_ast handle_non_terminal(string& input, Production& p, Chart& chart
   return input.substr(stringStart, stringLen);
 }
 
-_file_ast* late_parser::parse(string input)
+_file_ast late_parser::parse(string input)
 {
   Production start {"start", 0,
     {"_file"_nt}};
@@ -160,22 +156,23 @@ _file_ast* late_parser::parse(string input)
     tie(setIndex, stateIndex) = bootstrap.symbolInfo(0);
     Production userStart = c.getState(setIndex, stateIndex).first;
 
-    _file_ast* file = handle_file(input, userStart, c);
+    //_file_ast file = handle_file(input, userStart, c);
 
-    return file;
+    return _file_ast{};
   }
 
-  return nullptr;
+  return _file_ast{};
 }
 
 int main() {
-  ifstream grammar("late.bnf");
+  ifstream grammar("testGrammars/testHuge.bnf");
   string input{istreambuf_iterator<char>(grammar), istreambuf_iterator<char>()};
 
-  _file_ast* parsed = parse(input);
+  cout << "Input length: " << input.length() << endl;
+  _file_ast parsed = parse(input);
 
-  for(auto p : *parsed) {
-    cout << p->name_ << endl;
-  }
+  // for(auto p : parsed) {
+  //   cout << p.name_ << endl;
+  // }
   return 0;
 }
