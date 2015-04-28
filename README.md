@@ -1,3 +1,8 @@
+# Status of this project
+This was a weekend project I decided to do to learn a new parsing algorithm. I will probably contine to work on the project in some freetime and I hope to eventually finish the parser generator aspect of the project.
+
+That being said, development on the project will probably be fairly slow.
+
 # Late
 Late is a parser generator based around the Earley parsing algorithm.
 
